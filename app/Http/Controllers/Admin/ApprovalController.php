@@ -4,44 +4,52 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Jadwal;
+use App\Models\TahunAjaran; // Jangan lupa import ini
+use App\Models\TeacherAvailability; // Jangan lupa import ini
 use Illuminate\Http\Request;
 
 class ApprovalController extends Controller
 {
     public function dashboard()
     {
-        // Ambil semua data jadwal dari database yang statusnya 'MENUNGGU_PERSETUJUAN'
-        $jadwalMenunggu = \App\Models\Jadwal::where('status', 'MENUNGGU_PERSETUJUAN')
-                                            ->orderBy('created_at', 'desc')
-                                            ->get();
+        // 1. Ambil Jadwal yang Menunggu Persetujuan
+        $jadwalMenunggu = Jadwal::where('status', 'MENUNGGU_PERSETUJUAN')
+                                ->orderBy('created_at', 'desc')
+                                ->get();
 
-        // Kirim data tersebut ke sebuah view baru yang akan kita buat
-        return view('approval.dashboard', ['jadwalMenunggu' => $jadwalMenunggu]);
+        // 2. LOGIKA BARU: Ambil Rekap Ketersediaan Guru (Copy dari Dashboard Admin)
+        $tahunAktif = TahunAjaran::where('is_active', 1)->first();
+        
+        $rekapKetersediaan = collect(); // Default collection kosong
+        
+        if($tahunAktif) {
+            $rekapKetersediaan = TeacherAvailability::with('guru')
+                ->where('tahun_ajaran_id', $tahunAktif->id)
+                ->get()
+                ->groupBy('guru_id');
+        }
+
+        // 3. Kirim SEMUA variabel ke View
+        return view('approval.dashboard', compact('jadwalMenunggu', 'rekapKetersediaan'));
     }
     
+    // ... (Function approve & reject biarkan sama) ...
     public function approve(Jadwal $jadwal)
     {
-        // Ubah status jadwal menjadi DIPUBLIKASIKAN
         $jadwal->status = 'DIPUBLIKASIKAN';
         $jadwal->id_penyetuju = auth()->id();
         $jadwal->tanggal_publikasi = now();
         $jadwal->save();
 
-        // Nanti kita bisa tambahkan Log Histori di sini
-
-        return redirect()->route('admin.dashboard')->with('success', 'Jadwal #'.$jadwal->id.' telah disetujui dan dipublikasikan.');
+        return redirect()->route('approval.dashboard')->with('success', 'Jadwal #'.$jadwal->id.' telah disetujui dan dipublikasikan.');
     }
 
     public function reject(Request $request, Jadwal $jadwal)
     {
-        // Ubah status jadwal menjadi REVISI
         $jadwal->status = 'REVISI';
-
-        // Simpan catatan revisi dari input form
         $jadwal->catatan_revisi = $request->input('catatan_revisi');
-
         $jadwal->save();
-
+        
         return redirect()->route('approval.dashboard')->with('success', 'Jadwal #'.$jadwal->id.' telah dikembalikan untuk direvisi.');
     }
 }

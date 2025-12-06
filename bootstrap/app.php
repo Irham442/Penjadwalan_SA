@@ -15,6 +15,22 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'cekperan' => \App\Http\Middleware\CekPeran::class,
         ]);
+
+            $middleware->redirectUsersTo(function () {
+            $role = auth()->user()->role;
+
+            if ($role === 'Kurikulum') {
+                return route('admin.dashboard');
+            }
+            if ($role === 'Super Admin') {
+                return route('approval.dashboard');
+            }
+            if ($role === 'guru') {
+                return route('teacher.dashboard');
+            }
+
+            return '/dashboard'; // Tujuan default jika tidak ada peran yang cocok
+        });
     })
     ->withExceptions(function (Exceptions $exceptions) {
         //

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tambah Ruangan - Sistem Penjadwalan</title>
+    <title>Edit Ruangan - Sistem Penjadwalan</title>
     
     <!-- CSS Bootstrap 5 & Icons -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -40,8 +40,8 @@
         <!-- HEADER & TOMBOL KEMBALI -->
         <div class="d-flex justify-content-between align-items-center mb-4">
             <div>
-                <h1 class="h3 mb-0 fw-bold text-gray-800">Tambah Ruangan</h1>
-                <p class="text-muted small mb-0">Input data ruangan kelas atau laboratorium baru.</p>
+                <h1 class="h3 mb-0 fw-bold text-gray-800">Edit Ruangan</h1>
+                <p class="text-muted small mb-0">Perbarui data ruangan dan kapasitasnya.</p>
             </div>
             <a href="{{ route('admin.ruangan.index') }}" class="btn btn-outline-secondary btn-sm">
                 <i class="bi bi-arrow-left me-1"></i> Kembali
@@ -52,28 +52,28 @@
         <div class="card shadow-sm">
             <div class="card-header bg-white py-3">
                 <h6 class="m-0 fw-bold text-primary">
-                    <i class="bi bi-plus-circle me-2"></i> Form Input Ruangan
+                    <i class="bi bi-pencil-square me-2"></i> Form Edit Ruangan
                 </h6>
             </div>
             
             <div class="card-body p-4">
-                {{-- Form Store (Simpan Baru) --}}
-                <form action="{{ route('admin.ruangan.store') }}" method="POST">
+                {{-- Form Update --}}
+                <form action="{{ route('admin.ruangan.update', ['ruangan' => $ruangan->id_ruangan]) }}" method="POST">
                     @csrf
+                    @method('PUT') <!-- Method Spoofing untuk Update -->
 
                     <div class="mb-3">
                         <label for="nama_ruangan" class="form-label">Nama Ruangan <span class="text-danger">*</span></label>
-                        {{-- old() digunakan agar input tidak hilang jika ada validasi error --}}
-                        <input type="text" name="nama_ruangan" id="nama_ruangan" class="form-control" required value="{{ old('nama_ruangan') }}" placeholder="Contoh: X ATPH 1">
+                        <input type="text" name="nama_ruangan" id="nama_ruangan" class="form-control" required value="{{ $ruangan->nama_ruangan }}" placeholder="Contoh: Lab Komputer 1">
                     </div>
 
                     <div class="mb-4">
                         <label for="kapasitas" class="form-label">Kapasitas (Kursi) <span class="text-danger">*</span></label>
                         <div class="input-group">
-                            <input type="number" name="kapasitas" id="kapasitas" class="form-control" required min="1" value="{{ old('kapasitas') }}" placeholder="Contoh: 32">
+                            <input type="number" name="kapasitas" id="kapasitas" class="form-control" required min="1" value="{{ $ruangan->kapasitas }}">
                             <span class="input-group-text">Siswa</span>
                         </div>
-                        <div class="form-text">Masukkan estimasi jumlah siswa maksimal dalam ruangan ini.</div>
+                        <div class="form-text">Masukkan jumlah maksimal siswa yang dapat ditampung.</div>
                     </div>
                     
                     <hr>
@@ -84,7 +84,7 @@
                             <i class="bi bi-x-lg me-1"></i> Batal
                         </a>
                         <button type="submit" class="btn btn-primary px-4">
-                            <i class="bi bi-save me-1"></i> Simpan Data
+                            <i class="bi bi-save me-1"></i> Update Data
                         </button>
                     </div>
                 </form>

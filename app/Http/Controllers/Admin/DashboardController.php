@@ -3,82 +3,112 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
-
-// Impor semua Model yang kita butuhkan
 use App\Models\Guru;
 use App\Models\Kelas;
 use App\Models\MataPelajaran;
 use App\Models\Ruangan;
 use App\Models\Jadwal;
+use App\Models\TahunAjaran; 
+use App\Models\TeacherAvailability; // Import model ini biar rapi
 
 class DashboardController extends Controller
 {
     public function index()
     {
-        // Ambil data untuk kartu statistik
-        $jumlahGuru = \App\Models\Guru::count();
-        $jumlahKelas = \App\Models\Kelas::count();
-        $jumlahMapel = \App\Models\MataPelajaran::count();
-        $jumlahRuangan = \App\Models\Ruangan::count();
+        // 1. Data Statistik
+        $jumlahGuru = Guru::count();
+        $jumlahKelas = Kelas::count();
+        $jumlahMapel = MataPelajaran::count();
+        $jumlahRuangan = Ruangan::count();
 
-        // Ambil jadwal yang membutuhkan AKSI dari user ini (status DRAFT atau REVISI)
-        $drafts = \App\Models\Jadwal::where('id_admin_pembuat', auth()->id())
-                                    ->whereIn('status', ['DRAFT', 'REVISI'])
-                                    ->orderBy('created_at', 'desc')
-                                    ->get();
+        // 2. Data Tabel (Data Reference)
+        $semuaGuru = Guru::get();
+        $semuaKelas = Kelas::get();
+        $semuaMapel = MataPelajaran::get();
 
-        // Ambil RIWAYAT jadwal yang sudah dikirim atau selesai
-        $riwayat = \App\Models\Jadwal::where('id_admin_pembuat', auth()->id())
-                                    ->whereIn('status', ['MENUNGGU_PERSETUJUAN', 'DIPUBLIKASIKAN'])
-                                    ->orderBy('created_at', 'desc')
-                                    ->get();
+        // 3. Ambil Tahun Ajaran Aktif
+        $tahunAktif = TahunAjaran::where('is_active', 1)->first();
 
-        // Kirim semua variabel yang dibutuhkan oleh view
-        return view('admin.dashboard', [
-            'jumlahGuru' => $jumlahGuru,
-            'jumlahKelas' => $jumlahKelas,
-            'jumlahMapel' => $jumlahMapel,
-            'jumlahRuangan' => $jumlahRuangan,
-            'semuaGuru' => \App\Models\Guru::all(), // Data untuk tabel dinamis
-            'semuaKelas' => \App\Models\Kelas::all(),
-            'semuaMapel' => \App\Models\MataPelajaran::all(),
-            'semuaRuangan' => \App\Models\Ruangan::all(),
-            'drafts' => $drafts, // Variabel untuk tabel Aksi
-            'riwayat' => $riwayat, // Variabel untuk tabel Riwayat
-        ]);
-    }
-    public function submitForApproval(Jadwal $jadwal)
-    {
-        // Langkah 1: Validasi (opsional tapi bagus)
-        // Pastikan hanya pembuat draft yang bisa mengirimkannya.
-        if ($jadwal->id_admin_pembuat !== auth()->id()) {
-            // Jika bukan, tolak aksesnya.
-            abort(403, 'AKSI DITOLAK.');
+        // 4. LOGIKA TOMBOL GENERATE (3 KONDISI: BARU, NONAKTIF, REVISI)
+        $bisaGenerateBaru = false;
+        $jadwalRevisi = null; // Variabel penampung jadwal revisi
+        
+        if ($tahunAktif) {
+            // Cek apakah sudah ada jadwal APAPUN (Draft, Revisi, Published)
+            $jadwalExist = Jadwal::where('tahun_ajaran', $tahunAktif->tahun)
+                                 ->where('semester', $tahunAktif->semester)
+                                 ->exists();
+            
+            // Kondisi 1: Jika BELUM ADA jadwal sama sekali -> Bisa Generate Baru
+            $bisaGenerateBaru = !$jadwalExist;
+
+            // Kondisi 3: Cek apakah ada jadwal spesifik yang statusnya REVISI?
+            // Kita ambil objeknya agar view bisa mengambil ID-nya untuk route regenerate
+            $jadwalRevisi = Jadwal::where('tahun_ajaran', $tahunAktif->tahun)
+                                  ->where('semester', $tahunAktif->semester)
+                                  ->where('status', 'REVISI')
+                                  ->first();
         }
 
-        // Langkah 2: Ubah status jadwal menjadi 'MENUNGGU_PERSETUJUAN'
-        $jadwal->status = 'MENUNGGU_PERSETUJUAN';
-        $jadwal->save(); // Simpan perubahan ke database
+        // 5. Data Draft & Riwayat
+        $drafts = Jadwal::whereIn('status', ['DRAFT', 'REVISI'])->get();
+        $riwayat = Jadwal::whereNotIn('status', ['DRAFT', 'REVISI'])->latest()->get();
 
-        // Langkah 3: (Opsional) Buat catatan di log histori
-        // LogHistoriJadwal::create([...]);
-
-        // Langkah 4: Kembalikan user ke dashboard dengan pesan sukses
-        return redirect()->route('admin.dashboard')->with('success', 'Draft Jadwal #'.$jadwal->id.' berhasil dikirim untuk persetujuan.');
-    }
-    public function destroyDraft(\App\Models\Jadwal $jadwal)
-    {
-        // Validasi: pastikan hanya pembuatnya yang bisa menghapus
-        if ($jadwal->id_admin_pembuat !== auth()->id()) {
-            abort(403);
+        // 6. Data Monitoring Ketersediaan Guru
+        $rekapKetersediaan = collect(); // Inisialisasi collection kosong biar aman
+        if($tahunAktif) {
+            $rekapKetersediaan = TeacherAvailability::with('guru')
+                ->where('tahun_ajaran_id', $tahunAktif->id)
+                ->get()
+                ->groupBy('guru_id'); // Kelompokkan per guru
         }
 
-        // Hapus record jadwal utama
-        // Karena kita sudah mengatur 'onDelete(cascade)' di migrasi item_jadwal,
-        // semua item yang terhubung akan ikut terhapus otomatis.
+        // Kirim semua variabel ke View
+        return view('admin.dashboard', compact(
+            'jumlahGuru', 'jumlahKelas', 'jumlahMapel', 'jumlahRuangan',
+            'semuaGuru', 'semuaKelas', 'semuaMapel',
+            'bisaGenerateBaru', 'jadwalRevisi', // <--- PENTING: Variabel logika tombol
+            'drafts', 'riwayat',
+            'tahunAktif', 'rekapKetersediaan'
+        ));
+    }
+    
+    public function submitForApproval($id)
+    {
+        $jadwal = Jadwal::findOrFail($id);
+        
+        // Pastikan hanya draft yang bisa dikirim
+        if ($jadwal->status == 'DRAFT') {
+            $jadwal->update([
+                'status' => 'MENUNGGU_PERSETUJUAN'
+            ]);
+            
+            return redirect()->back()->with('success', 'Jadwal berhasil dikirim untuk persetujuan.');
+        }
+
+        return redirect()->back()->with('error', 'Hanya jadwal berstatus Draft yang bisa dikirim.');
+    }
+
+    public function destroyDraft($id)
+    {
+        $jadwal = Jadwal::findOrFail($id);
+        
+        // Hapus jadwal (Otomatis hapus item_jadwal karena on delete cascade di migration)
         $jadwal->delete();
 
-        return redirect()->route('admin.dashboard')->with('success', 'Draft Jadwal #'.$jadwal->id.' telah dihapus. Silakan buat jadwal baru.');
+        return redirect()->route('admin.dashboard')->with('success', 'Draft jadwal berhasil dihapus. Anda bisa membuat jadwal baru sekarang.');
+    }
+
+    public function resetAvailability($guruId)
+    {
+        $tahunAktif = TahunAjaran::where('is_active', 1)->first();
+        
+        if($tahunAktif) {
+            TeacherAvailability::where('guru_id', $guruId)
+                ->where('tahun_ajaran_id', $tahunAktif->id)
+                ->delete();
+        }
+        
+        return back()->with('success', 'Data ketersediaan guru tersebut berhasil di-reset.');
     }
 }
