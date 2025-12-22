@@ -12,34 +12,34 @@
     <style>
         body { background-color: #f1f5f9; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
         
-        /* Kartu Statistik */
+        /* Kartu Statistik (Link) */
         .stat-card {
             border: none;
             border-radius: 12px;
-            transition: transform 0.2s;
+            transition: all 0.3s ease;
             overflow: hidden;
+            text-decoration: none; /* Hilangkan garis bawah link */
+            display: block; /* Agar full area bisa diklik */
+            color: inherit;
         }
-        .stat-card:hover { transform: translateY(-5px); }
+        .stat-card:hover { 
+            transform: translateY(-5px); 
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        /* Efek hover khusus untuk border warna */
+        .stat-card.hover-primary:hover { border-bottom: 4px solid #0d6efd; }
+        .stat-card.hover-success:hover { border-bottom: 4px solid #198754; }
+        .stat-card.hover-info:hover { border-bottom: 4px solid #0dcaf0; }
+        .stat-card.hover-warning:hover { border-bottom: 4px solid #ffc107; }
+
         .stat-icon {
             width: 50px; height: 50px;
             display: flex; align-items: center; justify-content: center;
             border-radius: 10px; font-size: 24px;
         }
         
-        /* Tombol Aksi Utama */
-        .action-card {
-            background: white; border-radius: 12px;
-            border: 1px solid #e2e8f0;
-        }
-        
-        /* Tabs Data */
-        .nav-tabs .nav-link { color: #64748b; border: none; font-weight: 500; }
-        .nav-tabs .nav-link.active { 
-            color: #0d6efd; 
-            border-bottom: 2px solid #0d6efd; 
-            background: transparent;
-        }
-        .table-card { border-radius: 0 0 12px 12px; border-top: none; }
+        /* Layout Utils */
+        .table-card { border-radius: 12px; overflow: hidden; }
     </style>
 </head>
 <body>
@@ -72,7 +72,7 @@
             </div>
         @endif
 
-        <!-- BARIS 1: WELCOME & QUICK ACTIONS -->
+        <!-- BARIS 1: WELCOME & QUICK ACTIONS (Tanpa Data Ruangan) -->
         <div class="row mb-4">
             <!-- Kolom Kiri: Sambutan & Tombol Generate -->
             <div class="col-lg-8 mb-3 mb-lg-0">
@@ -110,7 +110,7 @@
                 </div>
             </div>
 
-            <!-- Kolom Kanan: Menu Navigasi Cepat -->
+            <!-- Kolom Kanan: Menu Navigasi Cepat (Tanpa Ruangan) -->
             <div class="col-lg-4">
                 <div class="card border-0 shadow-sm h-100 bg-white" style="border-radius: 12px;">
                     <div class="card-header bg-white border-0 fw-bold py-3">Menu Manajemen Data</div>
@@ -131,241 +131,166 @@
                                     <small class="text-muted" style="font-size: 0.75rem;">Pembagian Tugas Mengajar</small>
                                 </div>
                             </a>
-
-                            <a href="{{ route('admin.ruangan.index') }}" class="btn btn-outline-warning text-start p-3 border-2 d-flex align-items-center">
-                                <div class="bg-warning bg-opacity-10 p-2 rounded me-3 text-warning"><i class="bi bi-door-open fs-5"></i></div>
-                                <div>
-                                    <div class="fw-bold">Data Ruangan</div>
-                                    <small class="text-muted" style="font-size: 0.75rem;">Kapasitas Kelas & Lab</small>
-                                </div>
-                            </a>
+                            
+                            {{-- Data Ruangan dihapus dari sini sesuai permintaan --}}
                         </div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- BARIS 2: STATISTIK RINGKAS -->
+        <!-- BARIS 2: STATISTIK RINGKAS (SEKARANG BISA DIKLIK / LINK) -->
         <div class="row g-3 mb-4">
+            <!-- Link ke Data Guru -->
             <div class="col-md-3 col-sm-6">
-                <div class="card stat-card shadow-sm h-100">
+                <a href="{{ route('admin.guru.index') }}" class="card stat-card hover-primary shadow-sm h-100">
                     <div class="card-body d-flex align-items-center">
                         <div class="stat-icon bg-primary bg-opacity-10 text-primary me-3">
                             <i class="bi bi-person-video3"></i>
                         </div>
                         <div>
                             <h6 class="text-muted mb-0">Total Guru</h6>
-                            <h3 class="fw-bold mb-0">{{ $jumlahGuru }}</h3>
+                            <h3 class="fw-bold mb-0 text-dark">{{ $jumlahGuru }}</h3>
+                            <small class="text-primary" style="font-size: 0.75rem;">Klik untuk kelola <i class="bi bi-arrow-right"></i></small>
                         </div>
                     </div>
-                </div>
+                </a>
             </div>
+            
+            <!-- Link ke Data Kelas -->
             <div class="col-md-3 col-sm-6">
-                <div class="card stat-card shadow-sm h-100">
+                <a href="{{ route('admin.kelas.index') }}" class="card stat-card hover-success shadow-sm h-100">
                     <div class="card-body d-flex align-items-center">
                         <div class="stat-icon bg-success bg-opacity-10 text-success me-3">
                             <i class="bi bi-easel2"></i>
                         </div>
                         <div>
                             <h6 class="text-muted mb-0">Total Kelas</h6>
-                            <h3 class="fw-bold mb-0">{{ $jumlahKelas }}</h3>
+                            <h3 class="fw-bold mb-0 text-dark">{{ $jumlahKelas }}</h3>
+                            <small class="text-success" style="font-size: 0.75rem;">Klik untuk kelola <i class="bi bi-arrow-right"></i></small>
                         </div>
                     </div>
-                </div>
+                </a>
             </div>
+            
+            <!-- Link ke Data Mapel -->
             <div class="col-md-3 col-sm-6">
-                <div class="card stat-card shadow-sm h-100">
+                <a href="{{ route('admin.mapel.index') }}" class="card stat-card hover-info shadow-sm h-100">
                     <div class="card-body d-flex align-items-center">
                         <div class="stat-icon bg-info bg-opacity-10 text-info me-3">
                             <i class="bi bi-book"></i>
                         </div>
                         <div>
                             <h6 class="text-muted mb-0">Mata Pelajaran</h6>
-                            <h3 class="fw-bold mb-0">{{ $jumlahMapel }}</h3>
+                            <h3 class="fw-bold mb-0 text-dark">{{ $jumlahMapel }}</h3>
+                            <small class="text-info" style="font-size: 0.75rem;">Klik untuk kelola <i class="bi bi-arrow-right"></i></small>
                         </div>
                     </div>
-                </div>
+                </a>
             </div>
+            
+            <!-- Link ke Data Ruangan (Pindahan dari Menu Atas) -->
             <div class="col-md-3 col-sm-6">
-                <div class="card stat-card shadow-sm h-100">
+                <a href="{{ route('admin.ruangan.index') }}" class="card stat-card hover-warning shadow-sm h-100">
                     <div class="card-body d-flex align-items-center">
                         <div class="stat-icon bg-warning bg-opacity-10 text-warning me-3">
                             <i class="bi bi-door-open"></i>
                         </div>
                         <div>
                             <h6 class="text-muted mb-0">Ruangan</h6>
-                            <h3 class="fw-bold mb-0">{{ $jumlahRuangan }}</h3>
+                            <h3 class="fw-bold mb-0 text-dark">{{ $jumlahRuangan }}</h3>
+                            <small class="text-warning" style="font-size: 0.75rem;">Klik untuk kelola <i class="bi bi-arrow-right"></i></small>
                         </div>
                     </div>
-                </div>
+                </a>
             </div>
         </div>
 
-        <!-- [BARU] PANEL MONITORING KETERSEDIAAN GURU -->
-        <div class="card shadow-sm border-0 mb-4 border-start border-4 border-info">
-            <div class="card-header bg-white fw-bold py-3 d-flex justify-content-between align-items-center">
-                <span><i class="bi bi-eye-fill text-info me-2"></i> Monitoring Ketersediaan Guru</span>
-                <span class="badge bg-info text-dark">{{ count($rekapKetersediaan ?? []) }} Guru Menginput</span>
-            </div>
-            <div class="card-body p-0">
-                <div class="table-responsive" style="max-height: 300px; overflow-y: auto;">
-                    <table class="table table-hover align-middle mb-0">
-                        <thead class="table-light sticky-top">
-                            <tr>
-                                <th class="ps-4">Nama Guru</th>
-                                <th>Jadwal Tidak Bisa (Blocked)</th>
-                                <th>Total Jam</th>
-                                <th class="text-end pe-4">Aksi</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @forelse($rekapKetersediaan ?? [] as $guruId => $items)
-                                @php $namaGuru = $items->first()->guru->nama ?? 'Guru Dihapus'; @endphp
-                                <tr>
-                                    <td class="ps-4 fw-bold text-dark">{{ $namaGuru }}</td>
-                                    <td>
-                                        <div class="d-flex flex-wrap gap-1">
-                                            @foreach($items as $item)
-                                                <span class="badge bg-danger bg-opacity-10 text-danger border border-danger">
-                                                    {{ substr($item->day, 0, 3) }} 
-                                                    {{ date('H:i', strtotime($item->start_time)) }}-{{ date('H:i', strtotime($item->end_time)) }}
-                                                </span>
-                                            @endforeach
-                                        </div>
-                                        @if($items->first()->reason)
-                                            <small class="text-muted d-block mt-1 fst-italic">"{{ Str::limit($items->first()->reason, 50) }}"</small>
-                                        @endif
-                                    </td>
-                                    <td>
-                                        {{-- Hitung kasar total jam yang di-block --}}
-                                        @php 
-                                            $totalMenit = 0;
-                                            foreach($items as $i) {
-                                                $start = \Carbon\Carbon::parse($i->start_time);
-                                                $end = \Carbon\Carbon::parse($i->end_time);
-                                                $totalMenit += $end->diffInMinutes($start);
-                                            }
-                                        @endphp
-                                        <span class="badge {{ $totalMenit > 300 ? 'bg-warning text-dark' : 'bg-secondary' }}">
-                                            {{ round($totalMenit / 60, 1) }} Jam
-                                        </span>
-                                    </td>
-                                    <td class="text-end pe-4">
-                                        {{-- Tombol Reset untuk Admin jika guru terlalu banyak request --}}
-                                        <form action="{{ route('admin.availability.reset', $guruId) }}" method="POST" onsubmit="return confirm('Hapus semua request waktu guru ini? Guru harus menginput ulang.');">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button class="btn btn-sm btn-outline-danger" title="Tolak / Reset Request">
-                                                <i class="bi bi-trash"></i> Reset
-                                            </button>
-                                        </form>
-                                    </td>
-                                </tr>
-                            @empty
-                                <tr>
-                                    <td colspan="4" class="text-center py-4 text-muted">
-                                        <i class="bi bi-check-circle-fill text-success fs-4 d-block mb-1"></i>
-                                        Belum ada guru yang mengajukan jam berhalangan.
-                                    </td>
-                                </tr>
-                            @endforelse
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-            <div class="card-footer bg-light small text-muted">
-                <i class="bi bi-info-circle me-1"></i> 
-                <strong>Kontrol Admin:</strong> Jika guru memblokir terlalu banyak waktu sehingga jadwal sulit dibuat, Admin berhak menekan tombol <strong>Reset</strong> untuk menghapus request tersebut.
-            </div>
-        </div>
-
-        <!-- BARIS 3: KONTEN TABEL & STATUS -->
+        <!-- BARIS 3: KONTEN UTAMA -->
         <div class="row">
-            <!-- Kolom Kiri: DATA REFERENCE (TABS) -->
+            
+            <!-- Kolom Kiri: MONITORING DATA GURU (Pengganti Tabs Data Reference) -->
             <div class="col-lg-8">
-                <div class="card shadow-sm border-0 mb-4">
-                    <div class="card-header bg-white border-bottom-0 pt-3 pb-0">
-                        <ul class="nav nav-tabs" id="myTab" role="tablist">
-                            <li class="nav-item" role="presentation">
-                                <button class="nav-link active" id="guru-tab" data-bs-toggle="tab" data-bs-target="#guru" type="button"><i class="bi bi-people me-1"></i> Data Guru</button>
-                            </li>
-                            <li class="nav-item" role="presentation">
-                                <button class="nav-link" id="kelas-tab" data-bs-toggle="tab" data-bs-target="#kelas" type="button"><i class="bi bi-shop me-1"></i> Data Kelas</button>
-                            </li>
-                            <li class="nav-item" role="presentation">
-                                <button class="nav-link" id="mapel-tab" data-bs-toggle="tab" data-bs-target="#mapel" type="button"><i class="bi bi-journal-text me-1"></i> Data Mapel</button>
-                            </li>
-                        </ul>
+                <div class="card shadow-sm border-0 mb-4 border-start border-4 border-info">
+                    <div class="card-header bg-white fw-bold py-3 d-flex justify-content-between align-items-center">
+                        <span><i class="bi bi-eye-fill text-info me-2"></i> Monitoring Ketersediaan Guru</span>
+                        <span class="badge bg-info text-dark">{{ count($rekapKetersediaan ?? []) }} Guru Menginput</span>
                     </div>
-                    <div class="card-body table-card bg-white">
-                        <div class="tab-content" id="myTabContent">
-                            <!-- TAB GURU -->
-                            <div class="tab-pane fade show active" id="guru" role="tabpanel">
-                                <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
-                                    <table class="table table-hover align-middle">
-                                        <thead class="table-light sticky-top">
-                                            <tr><th>No</th><th>Nama</th><th>NIP</th><th>Jabatan</th></tr>
-                                        </thead>
-                                        <tbody>
-                                            @foreach($semuaGuru as $item)
-                                            <tr>
-                                                <td>{{ $loop->iteration }}</td>
-                                                <td class="fw-bold">{{ $item->nama }}</td>
-                                                <td>{{ $item->nip ?? '-' }}</td>
-                                                <td>{{ $item->jabatan ?? '-' }}</td>
-                                            </tr>
-                                            @endforeach
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
-                            <!-- TAB KELAS -->
-                            <div class="tab-pane fade" id="kelas" role="tabpanel">
-                                <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
-                                    <table class="table table-hover align-middle">
-                                        <thead class="table-light sticky-top">
-                                            <tr><th>No</th><th>Nama Kelas</th><th>Tingkat</th><th>Kapasitas</th></tr>
-                                        </thead>
-                                        <tbody>
-                                            @foreach($semuaKelas as $item)
-                                            <tr>
-                                                <td>{{ $loop->iteration }}</td>
-                                                <td class="fw-bold">{{ $item->nama_kelas }}</td>
-                                                <td>{{ $item->tingkat }}</td>
-                                                <td>{{ $item->kapasitas }} Siswa</td>
-                                            </tr>
-                                            @endforeach
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
-                            <!-- TAB MAPEL -->
-                            <div class="tab-pane fade" id="mapel" role="tabpanel">
-                                <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
-                                    <table class="table table-hover align-middle">
-                                        <thead class="table-light sticky-top">
-                                            <tr><th>No</th><th>Kode</th><th>Mata Pelajaran</th><th>Kategori</th></tr>
-                                        </thead>
-                                        <tbody>
-                                            @foreach($semuaMapel as $mapel)
-                                            <tr>
-                                                <td>{{ $loop->iteration }}</td>
-                                                <td><span class="badge bg-secondary">{{ $mapel->kode_mapel }}</span></td>
-                                                <td class="fw-bold">{{ $mapel->nama_mapel }}</td>
-                                                <td>{{ $mapel->kategori ?? '-' }}</td>
-                                            </tr>
-                                            @endforeach
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive" style="max-height: 450px; overflow-y: auto;">
+                            <table class="table table-hover align-middle mb-0">
+                                <thead class="table-light sticky-top">
+                                    <tr>
+                                        <th class="ps-4">Nama Guru</th>
+                                        <th>Jadwal Tidak Bisa (Blocked)</th>
+                                        <th>Total Jam</th>
+                                        <th class="text-end pe-4">Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @forelse($rekapKetersediaan ?? [] as $guruId => $items)
+                                        @php $namaGuru = $items->first()->guru->nama ?? 'Guru Dihapus'; @endphp
+                                        <tr>
+                                            <td class="ps-4 fw-bold text-dark">{{ $namaGuru }}</td>
+                                            <td>
+                                                <div class="d-flex flex-wrap gap-1">
+                                                    @foreach($items as $item)
+                                                        <span class="badge bg-danger bg-opacity-10 text-danger border border-danger">
+                                                            {{ substr($item->day, 0, 3) }} 
+                                                            {{ date('H:i', strtotime($item->start_time)) }}-{{ date('H:i', strtotime($item->end_time)) }}
+                                                        </span>
+                                                    @endforeach
+                                                </div>
+                                                @if($items->first()->reason)
+                                                    <small class="text-muted d-block mt-1 fst-italic">"{{ Str::limit($items->first()->reason, 50) }}"</small>
+                                                @endif
+                                            </td>
+                                            <td>
+                                                @php 
+                                                    $totalMenit = 0;
+                                                    foreach($items as $i) {
+                                                        $start = \Carbon\Carbon::parse($i->start_time);
+                                                        $end = \Carbon\Carbon::parse($i->end_time);
+                                                        $totalMenit += $end->diffInMinutes($start);
+                                                    }
+                                                @endphp
+                                                <span class="badge {{ $totalMenit > 300 ? 'bg-warning text-dark' : 'bg-secondary' }}">
+                                                    {{ round($totalMenit / 60, 1) }} Jam
+                                                </span>
+                                            </td>
+                                            <td class="text-end pe-4">
+                                                <form action="{{ route('admin.availability.reset', $guruId) }}" method="POST" onsubmit="return confirm('Hapus semua request waktu guru ini? Guru harus menginput ulang.');">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button class="btn btn-sm btn-outline-danger" title="Tolak / Reset Request">
+                                                        <i class="bi bi-trash"></i> Reset
+                                                    </button>
+                                                </form>
+                                            </td>
+                                        </tr>
+                                    @empty
+                                        <tr>
+                                            <td colspan="4" class="text-center py-5 text-muted">
+                                                <i class="bi bi-check-circle-fill text-success fs-1 d-block mb-2"></i>
+                                                <span class="fw-bold">Semua Guru Available</span><br>
+                                                <small>Belum ada guru yang mengajukan jam berhalangan.</small>
+                                            </td>
+                                        </tr>
+                                    @endforelse
+                                </tbody>
+                            </table>
                         </div>
+                    </div>
+                    <div class="card-footer bg-light small text-muted">
+                        <i class="bi bi-info-circle me-1"></i> 
+                        <strong>Kontrol Admin:</strong> Gunakan tabel ini untuk memantau request guru sebelum men-generate jadwal. Jika terlalu banyak blokir, jadwal mungkin gagal dibuat.
                     </div>
                 </div>
             </div>
 
-            <!-- Kolom Kanan: STATUS JADWAL -->
+            <!-- Kolom Kanan: STATUS JADWAL (Drafts & Riwayat) -->
             <div class="col-lg-4">
+                
                 <!-- DRAFT CARD -->
                 <div class="card shadow-sm border-0 mb-4">
                     <div class="card-header bg-white fw-bold py-3 d-flex justify-content-between align-items-center">
@@ -389,18 +314,11 @@
 
                                     <div class="d-grid gap-2">
                                         <a href="{{ route('admin.jadwal.show', $draft->id) }}" class="btn btn-sm btn-outline-primary">Lihat Detail</a>
-                                        
-                                        <!-- @if($draft->status == 'DRAFT')
-                                            <button type="button" class="btn btn-sm btn-success" data-bs-toggle="modal" data-bs-target="#konfirmasiKirimModal-{{ $draft->id }}">
-                                                Kirim Approval
-                                            </button>
-                                        @endif -->
                                     </div>
 
-                                    <!-- Modal Kirim (Biarkan sama) -->
                                     @if($draft->status == 'DRAFT')
                                     <div class="modal fade" id="konfirmasiKirimModal-{{ $draft->id }}" tabindex="-1">
-                                        <!-- ... (Isi modal sama) ... -->
+                                            {{-- Modal Content (Jika diperlukan) --}}
                                     </div>
                                     @endif
                                 </li>
@@ -438,6 +356,7 @@
                         </div>
                     </div>
                 </div>
+
             </div>
         </div>
 

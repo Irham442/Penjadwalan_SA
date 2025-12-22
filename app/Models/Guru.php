@@ -8,21 +8,49 @@ use Illuminate\Database\Eloquent\Model;
 class Guru extends Model
 {
     use HasFactory;
-    protected $table = 'guru'; // Sesuaikan jika nama tabel beda
-    protected $primaryKey = 'id_guru'; // Beritahu primary key-nya
-    public $timestamps = false; // Beritahu agar tidak mencari kolom timestamps
 
-    // Relasi 1: Untuk tahu guru ini aktif di tahun ajaran mana saja
-public function tahunAjaran()
-{
-    // Parameter: Model Tujuan, Nama Tabel Pivot, FK di Pivot (Guru), FK di Pivot (Tahun)
-    return $this->belongsToMany(TahunAjaran::class, 'guru_aktif', 'guru_id', 'tahun_ajaran_id')
-                ->withTimestamps();
-}
+    protected $table = 'guru'; 
+    protected $primaryKey = 'id_guru';
+    public $timestamps = false; // Sesuai permintaan Anda (database lama biasanya tidak ada created_at/updated_at)
 
-// Relasi 2: Untuk mengambil data jam 'tidak bersedia' guru ini
-public function availabilities()
-{
-    return $this->hasMany(TeacherAvailability::class, 'guru_id', 'id_guru');
-}
+    // Wajib ada agar fungsi Create & Update di Controller berjalan
+    protected $fillable = [
+        'user_id',
+        'nama',
+        'nip',
+        'nuptk',
+        'jabatan',
+        'pangkat',
+        'status_kepegawaian',
+        'tanggal_masuk',
+        'jenis_kelamin',
+        'tempat_lahir',
+        'tanggal_lahir',
+        'agama',
+        'phone',
+        'alamat',
+        'mapel_id'
+    ];
+
+    // ================= RELASI DATABASE =================
+
+    // Relasi 1: Guru aktif di tahun ajaran mana saja
+    public function tahunAjaran()
+    {
+        // Parameter: Model Tujuan, Nama Tabel Pivot, FK di Pivot (Guru), FK di Pivot (Tahun)
+        return $this->belongsToMany(TahunAjaran::class, 'guru_aktif', 'guru_id', 'tahun_ajaran_id')
+                    ->withTimestamps();
+    }
+
+    // Relasi 2: Mengambil data jam 'tidak bersedia' (Availability)
+    public function availabilities()
+    {
+        return $this->hasMany(TeacherAvailability::class, 'guru_id', 'id_guru');
+    }
+
+    // Relasi 3 (Opsional): Ke Mata Pelajaran (karena ada kolom mapel_id)
+    public function mapel()
+    {
+        return $this->belongsTo(Mapel::class, 'mapel_id', 'id_mapel');
+    }
 }

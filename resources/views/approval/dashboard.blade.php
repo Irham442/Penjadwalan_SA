@@ -46,7 +46,7 @@
         <div class="card bg-white mb-4">
             <div class="card-body p-4 d-flex align-items-center justify-content-between">
                 <div>
-                    <h2 class="fw-bold text-gray-800 mb-1">Dashboard Validasi Jadwal</h2>
+                    <h2 class="fw-bold text-gray-800 mb-1">Validasi Jadwal</h2>
                     <p class="text-muted mb-0">Tinjau dan setujui draft jadwal yang diajukan oleh Tim Kurikulum.</p>
                 </div>
                 <div class="d-none d-md-block text-primary opacity-25">

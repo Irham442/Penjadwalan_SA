@@ -38,8 +38,10 @@ class TahunAjaranController extends Controller
     // 3. Aktifkan Satu Tahun
     public function activate($id)
     {
-        TahunAjaran::query()->update(['is_active' => 0]);
+        // STEP 1: Matikan SEMUA tahun ajaran dulu (Reset jadi 0)
+        TahunAjaran::query()->update(['is_active' => 0]); 
 
+        // STEP 2: Cari tahun yang dipilih, lalu nyalakan (Set jadi 1)
         $tahun = TahunAjaran::findOrFail($id);
         $tahun->update(['is_active' => 1]);
 

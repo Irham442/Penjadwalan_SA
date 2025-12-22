@@ -13,83 +13,93 @@ use Illuminate\Http\Request;
 
 class BebanAjarController extends Controller
 {
-    public function index()
-    {
-        // 1. Ambil Tahun Ajaran yang sedang AKTIF (Untuk info di atas tabel)
-        $tahunAktif = TahunAjaran::where('is_active', 1)->first();
+public function index()
+{
+    // 1. Cek Tahun Aktif
+    $tahunAktif = \App\Models\TahunAjaran::where('is_active', 1)->first();
 
-        // 2. Ambil data beban ajar
-        $bebanAjars = BebanAjar::with(['guru', 'mapel', 'kelas'])
-                        ->orderBy(function($query) {
-                            $query->select('nama')
-                                ->from('guru')
-                                ->whereColumn('guru.id_guru', 'beban_ajar.id_guru');
-                        })
-                        ->paginate(20);
+    // 2. Query Data
+    $query = \App\Models\BebanAjar::with(['guru', 'mapel', 'kelas']); // Load relasi
 
-        // 3. Kirim $tahunAktif juga ke view
-        return view('admin.beban_ajar.index', compact('bebanAjars', 'tahunAktif'));
+    if ($tahunAktif) {
+        // HANYA tampilkan data yang punya ID tahun ajaran aktif ini
+        $query->where('id_tahun_ajaran', $tahunAktif->id);
+    } else {
+        // Jika tidak ada tahun aktif, jangan tampilkan apa-apa (tabel kosong)
+        // Atau tampilkan data dummy id -1 agar result kosong
+        $query->where('id_tahun_ajaran', -1);
     }
+
+    $bebanAjars = $query->paginate(20);
+
+    return view('admin.beban_ajar.index', compact('bebanAjars', 'tahunAktif'));
+}
     
-    public function create()
+public function create()
     {
-        // ============================================================
         // [REVISI DOSEN] FILTERISASI GURU BERDASARKAN TAHUN AJARAN
-        // ============================================================
-        
-        // 1. Cek Tahun Ajaran mana yang sedang AKTIF (is_active = 1)
         $tahunAktif = TahunAjaran::where('is_active', 1)->first();
 
         if ($tahunAktif) {
-            // Jika ada tahun aktif, ambil guru yang terdaftar di tahun itu saja
-            // Relasi 'gurus()' harus ada di Model TahunAjaran
-            $gurus = $tahunAktif->gurus()->orderBy('nama')->get();
+            // Pastikan relasi gurus() ada di Model TahunAjaran, atau gunakan logika lain
+            // Jika error, kembalikan ke Guru::all()
+            if(method_exists($tahunAktif, 'gurus')) {
+                $gurus = $tahunAktif->gurus()->orderBy('nama')->get();
+            } else {
+                $gurus = Guru::orderBy('nama')->get();
+            }
         } else {
-            // Fallback: Jika belum ada tahun aktif diset, tampilkan semua guru
             $gurus = Guru::orderBy('nama')->get();
         }
 
-        // 2. Ambil daftar Kejuruan dari MATA PELAJARAN
+        // Ambil daftar Kejuruan
         $produktifMapels = MataPelajaran::where('kategori', 'Produktif')->pluck('kode_mapel');
         
         $kejuruanList = $produktifMapels->map(function($kode_mapel) {
             $parts = explode('-', $kode_mapel);
-            if (count($parts) > 0) {
-                return $parts[0];
-            }
-            return null;
+            return count($parts) > 0 ? $parts[0] : null;
         })->filter()->unique()->sort();
         
-        // 3. Ambil daftar waktu untuk locking
         $waktus = HariWaktu::orderByRaw("FIELD(hari, 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat')")
-                          ->orderBy('jam_mulai')
-                          ->get();
-                          
-        // 4. Kirim ke view (tambahkan variabel tahunAktif agar bisa ditampilkan di judul form jika mau)
+                            ->orderBy('jam_mulai')
+                            ->get();
+
         return view('admin.beban_ajar.create', compact('gurus', 'kejuruanList', 'waktus', 'tahunAktif'));
     }
 
     public function store(Request $request)
     {
+        // 1. Ambil Tahun Ajaran yang sedang AKTIF
+        $tahunAktif = \App\Models\TahunAjaran::where('is_active', 1)->first();
+
+        // Validasi: Jangan biarkan input jika tidak ada tahun ajaran aktif
+        if (!$tahunAktif) {
+            return redirect()->back()->with('error', 'Gagal: Tidak ada Tahun Ajaran yang aktif. Silakan setel dulu di menu Tahun Ajaran.');
+        }
+
         $request->validate([
-            'id_guru' => 'required|exists:guru,id_guru',
-            'id_mapel' => 'required|exists:mata_pelajaran,id_mapel',
-            'id_kelas' => 'required|exists:kelas,id_kelas',
-            'jumlah_jam_seminggu' => 'required|integer|min:1',
-            'jam_per_blok' => 'required|integer|min:1',
-            'id_hari_waktu' => 'nullable|exists:hari_waktu,id', 
+            'id_guru' => 'required',
+            'id_mapel' => 'required',
+            'id_kelas' => 'required',
+            'jumlah_jam_seminggu' => 'required|numeric',
+            'jam_per_blok' => 'required|numeric',
+            'id_hari_waktu' => 'nullable', // Sesuaikan jika wajib
         ]);
 
-        BebanAjar::create([
+        // 2. Simpan data dengan menyisipkan 'id_tahun_ajaran'
+        \App\Models\BebanAjar::create([
             'id_guru' => $request->id_guru,
             'id_mapel' => $request->id_mapel,
             'id_kelas' => $request->id_kelas,
             'jumlah_jam_seminggu' => $request->jumlah_jam_seminggu,
             'jam_per_blok' => $request->jam_per_blok,
             'id_hari_waktu' => $request->id_hari_waktu,
+            
+            // INI KUNCINYA: Masukkan ID tahun aktif secara otomatis
+            'id_tahun_ajaran' => $tahunAktif->id 
         ]);
 
-        return redirect()->route('admin.beban-ajar.index')->with('success', 'Beban ajar berhasil ditambahkan.'); 
+        return redirect()->route('admin.beban-ajar.index')->with('success', 'Beban ajar berhasil ditambahkan untuk Semester ini.');
     }
 
 

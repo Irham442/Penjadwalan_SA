@@ -29,6 +29,7 @@ class BebanAjar extends Model
         'jumlah_jam_seminggu',
         'jam_per_blok',
         'id_hari_waktu', // <-- Tambahkan ini
+        'id_tahun_ajaran'
     ];
 
     /**
@@ -60,5 +61,10 @@ class BebanAjar extends Model
     public function waktu()
     {
         return $this->belongsTo(HariWaktu::class, 'id_hari_waktu', 'id');
+    }
+    public function tahunAjaran()
+    {
+        // Parameter ke-2 adalah nama kolom di tabel beban_ajars
+        return $this->belongsTo(TahunAjaran::class, 'id_tahun_ajaran');
     }
 }

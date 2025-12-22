@@ -14,23 +14,113 @@
         .card { border-radius: 12px; border: none; }
         .table thead { background-color: #343a40; color: white; }
         .info-banner { border-left: 5px solid; }
+        .btn-sm { border-radius: 6px; }
+        .table-hover tbody tr:hover { background-color: #f1f3f5; }
+        
+        /* Animasi kecil untuk badge */
+        .badge { transition: all 0.2s; }
+        .badge:hover { transform: scale(1.05); }
+
+        /* Style Tambahan untuk Navbar */
+        .navbar-nav .nav-link {
+            transition: all 0.3s ease;
+            border-bottom: 2px solid transparent;
+        }
+        .navbar-nav .nav-link:hover {
+            color: #ffc107 !important; /* Kuning Warning */
+            transform: translateY(-2px);
+        }
+        .navbar-nav .nav-link.active {
+            color: #ffc107 !important;
+            border-bottom: 2px solid #ffc107;
+            font-weight: bold;
+        }
     </style>
 </head>
 <body>
 
     <!-- NAVBAR -->
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-4">
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow sticky-top mb-4">
         <div class="container">
-            <a class="navbar-brand" href="{{ route('admin.dashboard') }}">
-                <i class="bi bi-calendar-week me-2"></i> Dashboard Penjadwalan
+            <!-- BRAND LOGO -->
+            <a class="navbar-brand fw-bold" href="{{ route('admin.dashboard') }}">
+                <i class="bi bi-calendar-week me-2"></i> SIP JADWAL
             </a>
-            <div class="d-flex">
-                <form method="POST" action="{{ route('logout') }}">
-                    @csrf
-                    <button type="submit" class="btn btn-danger btn-sm">
-                        <i class="bi bi-box-arrow-right me-1"></i> Logout
-                    </button>
-                </form>
+    
+            <!-- TOGGLER (HAMBURGER MENU UNTUK HP) -->
+            <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent" aria-controls="navbarContent" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+    
+            <!-- MENU ITEMS -->
+            <div class="collapse navbar-collapse" id="navbarContent">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    
+                    <!-- Dashboard -->
+                    <li class="nav-item">
+                        <a class="nav-link {{ request()->routeIs('admin.dashboard') ? 'active' : '' }}" href="{{ route('admin.dashboard') }}">
+                            <i class="bi bi-speedometer2 me-1"></i> Dashboard
+                        </a>
+                    </li>
+    
+                    <!-- Data Master: Tahun Ajar (Current Page) -->
+                    <li class="nav-item">
+                        <a class="nav-link {{ request()->routeIs('admin.tahun_ajaran.*') ? 'active' : '' }}" href="{{ route('admin.tahun_ajaran.index') }}">
+                            <i class="bi bi-calendar-event me-1"></i> Tahun Ajar
+                        </a>
+                    </li>
+    
+                    <!-- Mapel -->
+                    <li class="nav-item">
+                        <a class="nav-link {{ request()->routeIs('admin.mapel.*') ? 'active' : '' }}" href="{{ route('admin.mapel.index') }}">
+                            <i class="bi bi-journal-bookmark me-1"></i> Mapel
+                        </a>
+                    </li>
+
+                    <!-- Ruangan (Ditambahkan sesuai route resource 'ruangan') -->
+                    <li class="nav-item">
+                        <a class="nav-link {{ request()->routeIs('admin.ruangan.*') ? 'active' : '' }}" href="{{ route('admin.ruangan.index') }}">
+                            <i class="bi bi-building me-1"></i> Ruangan
+                        </a>
+                    </li>
+    
+                    <!-- Guru -->
+                    <li class="nav-item">
+                        <a class="nav-link {{ request()->routeIs('admin.guru.*') ? 'active' : '' }}" href="{{ route('admin.guru.index') }}">
+                            <i class="bi bi-person-badge me-1"></i> Guru
+                        </a>
+                    </li>
+    
+                    <!-- Kelas -->
+                    <li class="nav-item">
+                        <a class="nav-link {{ request()->routeIs('admin.kelas.*') ? 'active' : '' }}" href="{{ route('admin.kelas.index') }}">
+                            <i class="bi bi-people me-1"></i> Kelas
+                        </a>
+                    </li>
+    
+                    <!-- Beban Ajar (Diupdate menggunakan hyphen '-' sesuai default resource route) -->
+                    <li class="nav-item">
+                        <a class="nav-link {{ request()->routeIs('admin.beban-ajar.*') ? 'active' : '' }}" href="{{ route('admin.beban-ajar.index') }}">
+                            <i class="bi bi-briefcase me-1"></i> Beban Ajar
+                        </a>
+                    </li>
+    
+                </ul>
+    
+                <!-- BAGIAN KANAN (USER & LOGOUT) -->
+                <div class="d-flex align-items-center mt-3 mt-lg-0">
+                    <!-- Menampilkan Nama User Login -->
+                    <span class="text-white-50 me-3 d-none d-lg-block small">
+                        Halo, {{ Auth::user()->name ?? 'Admin' }}
+                    </span>
+    
+                    <form method="POST" action="{{ route('logout') }}">
+                        @csrf
+                        <button type="submit" class="btn btn-outline-danger btn-sm rounded-pill px-3 w-100 w-lg-auto">
+                            <i class="bi bi-box-arrow-right me-1"></i> Logout
+                        </button>
+                    </form>
+                </div>
             </div>
         </div>
     </nav>

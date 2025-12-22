@@ -2,13 +2,10 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Manajemen Ruangan - Sistem Penjadwalan</title>
-    
-    <!-- CSS Bootstrap 5 & Icons -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-    
+    <title>Data Kelas - Admin</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+
     <style>
         body { background-color: #f8f9fa; }
         .card { border-radius: 12px; border: none; }
@@ -36,10 +33,9 @@
         }
     </style>
 </head>
-<body>
+<body class="bg-light">
 
-    <!-- NAVBAR -->
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow sticky-top mb-4">
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow sticky-top mb-4">
         <div class="container">
             <!-- BRAND LOGO -->
             <a class="navbar-brand fw-bold" href="{{ route('admin.dashboard') }}">
@@ -124,102 +120,64 @@
         </div>
     </nav>
 
-    <!-- KONTEN UTAMA -->
-    <div class="container pb-5">
-
-        <!-- HEADER & TOMBOL KEMBALI -->
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <div>
-                <h1 class="h3 mb-0 fw-bold text-gray-800">Manajemen Ruangan</h1>
-                <p class="text-muted small mb-0">Daftar lokasi fisik (kelas/lab) untuk kegiatan belajar mengajar.</p>
-            </div>
-            <a href="{{ route('admin.dashboard') }}" class="btn btn-outline-secondary btn-sm">
-                <i class="bi bi-arrow-left me-1"></i> Kembali ke Menu Utama
-            </a>
-        </div>
-
-        <!-- PESAN SUKSES -->
-        @if(session('success'))
-            <div class="alert alert-success alert-dismissible fade show shadow-sm" role="alert">
-                <i class="bi bi-check-circle-fill me-2"></i> {{ session('success') }}
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-            </div>
-        @endif
-
-        <!-- CARD TABEL -->
-        <div class="card shadow-sm">
+    <div class="container">
+        <div class="card border-0 shadow-sm">
             <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
-                <h6 class="m-0 fw-bold text-primary">
-                    <i class="bi bi-door-open me-2"></i> Daftar Ruangan Tersedia
-                </h6>
-                <a href="{{ route('admin.ruangan.create') }}" class="btn btn-primary btn-sm shadow-sm">
-                    <i class="bi bi-plus-lg me-1"></i> Tambah Ruangan
+                <h5 class="mb-0 fw-bold"><i class="bi bi-shop me-2"></i>Data Kelas</h5>
+                <a href="{{ route('admin.kelas.create') }}" class="btn btn-success btn-sm">
+                    <i class="bi bi-plus-lg"></i> Tambah Kelas
                 </a>
             </div>
-
             <div class="card-body">
+                
+                @if(session('success'))
+                    <div class="alert alert-success alert-dismissible fade show">
+                        {{ session('success') }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                @endif
+
                 <div class="table-responsive">
-                    <table class="table table-hover table-bordered align-middle">
-                        <thead class="text-center table-dark">
+                    <table class="table table-hover align-middle">
+                        <thead class="table-light">
                             <tr>
-                                <th width="10%">No</th>
-                                <th width="45%">Nama Ruangan</th>
-                                <th width="20%">Kapasitas</th>
-                                <th width="25%">Aksi</th>
+                                <th>No</th>
+                                <th>Nama Kelas</th>
+                                <th>Tingkat</th>
+                                <th>Kapasitas</th>
+                                <th>Wali Kelas</th>
+                                <th class="text-end">Aksi</th>
                             </tr>
                         </thead>
                         <tbody>
-                            @forelse ($semuaRuangan as $ruangan)
-                                <tr>
-                                    <td class="text-center">{{ $loop->iteration }}</td>
-                                    
-                                    <td class="fw-bold text-dark">
-                                        {{ $ruangan->nama_ruangan }}
-                                    </td>
-                                    
-                                    <td class="text-center">
-                                        <span class="badge bg-info text-dark">
-                                            <i class="bi bi-people-fill me-1"></i> {{ $ruangan->kapasitas }} Siswa
-                                        </span>
-                                    </td>
-                                    
-                                    <td class="text-center">
-                                        <div class="d-flex justify-content-center gap-2">
-                                            <!-- Tombol Edit -->
-                                            <a href="{{ route('admin.ruangan.edit', ['ruangan' => $ruangan->id_ruangan]) }}" class="btn btn-sm btn-warning text-white" title="Edit Data">
-                                                <i class="bi bi-pencil-square"></i> Edit
-                                            </a>
-
-                                            <!-- Tombol Hapus -->
-                                            <form action="{{ route('admin.ruangan.destroy', ['ruangan' => $ruangan->id_ruangan]) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus ruangan ini? Data jadwal yang menggunakan ruangan ini mungkin akan terganggu.');">
-                                                @csrf
-                                                @method('DELETE')
-                                                <button type="submit" class="btn btn-sm btn-danger" title="Hapus Data">
-                                                    <i class="bi bi-trash"></i> Hapus
-                                                </button>
-                                            </form>
-                                        </div>
-                                    </td>
-                                </tr>
+                            @forelse($kelas as $k)
+                            <tr>
+                                <td>{{ $loop->iteration }}</td>
+                                <td class="fw-bold">{{ $k->nama_kelas }}</td>
+                                <td><span class="badge bg-secondary">Kelas {{ $k->tingkat }}</span></td>
+                                <td>{{ $k->kapasitas }} Siswa</td>
+                                <td>{{ $k->waliKelas->nama ?? '-' }}</td>
+                                <td class="text-end">
+                                    <form onsubmit="return confirm('Hapus kelas ini?');" action="{{ route('admin.kelas.destroy', $k->id_kelas) }}" method="POST">
+                                        <a href="{{ route('admin.kelas.edit', $k->id_kelas) }}" class="btn btn-sm btn-warning"><i class="bi bi-pencil"></i></a>
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="btn btn-sm btn-danger"><i class="bi bi-trash"></i></button>
+                                    </form>
+                                </td>
+                            </tr>
                             @empty
-                                <tr>
-                                    <td colspan="4" class="text-center py-5 text-muted">
-                                        <i class="bi bi-inbox fs-1 d-block mb-2"></i>
-                                        Belum ada data ruangan yang terdaftar.
-                                    </td>
-                                </tr>
+                            <tr><td colspan="6" class="text-center text-muted py-4">Data Kelas belum tersedia.</td></tr>
                             @endforelse
                         </tbody>
                     </table>
                 </div>
-                
-                {{-- Jika menggunakan pagination, bisa tambahkan di sini --}}
-                {{-- <div class="mt-3"> {{ $semuaRuangan->links() }} </div> --}}
             </div>
         </div>
+        <div class="mt-3">
+            <a href="{{ route('admin.dashboard') }}" class="text-decoration-none text-muted"><i class="bi bi-arrow-left"></i> Kembali ke Dashboard</a>
+        </div>
     </div>
-
-    <!-- JS Bootstrap -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
